@@ -7,10 +7,12 @@ import {
   ScrollView,
   Alert,
   Switch,
+  StatusBar,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { selectCurrentUser, logout } from '../../store/slices/authSlice';
 
 export default function SettingsScreen() {
@@ -43,17 +45,25 @@ export default function SettingsScreen() {
       style={[styles.settingItem, !showBorder && styles.settingItemNoBorder]}
       onPress={onPress}
       disabled={!onPress}
+      activeOpacity={0.7}
     >
-      <View style={styles.settingLeft}>
-        <View style={styles.settingIconContainer}>
-          <MaterialCommunityIcons name={icon} size={24} color="#2196F3" />
+      <LinearGradient
+        colors={['#FFFFFF', '#F8FAFF']}
+        style={styles.settingItemGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.settingLeft}>
+          <View style={styles.settingIconContainer}>
+            <MaterialCommunityIcons name={icon} size={24} color="#667eea" />
+          </View>
+          <View style={styles.settingTextContainer}>
+            <Text style={styles.settingTitle}>{title}</Text>
+            {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
+          </View>
         </View>
-        <View style={styles.settingTextContainer}>
-          <Text style={styles.settingTitle}>{title}</Text>
-          {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
-        </View>
-      </View>
-      {rightComponent || (onPress && <MaterialCommunityIcons name="chevron-right" size={20} color="#ccc" />)}
+        {rightComponent || (onPress && <MaterialCommunityIcons name="chevron-right" size={20} color="#c8d6e5" />)}
+      </LinearGradient>
     </TouchableOpacity>
   );
 
@@ -63,12 +73,27 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
+      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+      
+      {/* Modern Header with Gradient */}
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        style={styles.header}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.headerContent}>
           <Text style={styles.title}>Settings</Text>
+          <TouchableOpacity style={styles.searchButton}>
+            <MaterialCommunityIcons name="magnify" size={24} color="white" />
+          </TouchableOpacity>
         </View>
+      </LinearGradient>
 
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Notifications Section */}
         <SectionHeader title="Notifications" />
         <View style={styles.section}>
@@ -80,8 +105,8 @@ export default function SettingsScreen() {
               <Switch
                 value={notificationsEnabled}
                 onValueChange={setNotificationsEnabled}
-                trackColor={{ false: '#767577', true: '#81b0ff' }}
-                thumbColor={notificationsEnabled ? '#2196F3' : '#f4f3f4'}
+                trackColor={{ false: '#e9ecef', true: '#667eea40' }}
+                thumbColor={notificationsEnabled ? '#667eea' : '#adb5bd'}
               />
             }
           />
@@ -93,8 +118,8 @@ export default function SettingsScreen() {
               <Switch
                 value={soundEnabled}
                 onValueChange={setSoundEnabled}
-                trackColor={{ false: '#767577', true: '#81b0ff' }}
-                thumbColor={soundEnabled ? '#2196F3' : '#f4f3f4'}
+                trackColor={{ false: '#e9ecef', true: '#667eea40' }}
+                thumbColor={soundEnabled ? '#667eea' : '#adb5bd'}
               />
             }
           />
@@ -106,8 +131,8 @@ export default function SettingsScreen() {
               <Switch
                 value={emergencyAlerts}
                 onValueChange={setEmergencyAlerts}
-                trackColor={{ false: '#767577', true: '#81b0ff' }}
-                thumbColor={emergencyAlerts ? '#2196F3' : '#f4f3f4'}
+                trackColor={{ false: '#e9ecef', true: '#26de8140' }}
+                thumbColor={emergencyAlerts ? '#26de81' : '#adb5bd'}
               />
             }
             showBorder={false}
@@ -125,8 +150,8 @@ export default function SettingsScreen() {
               <Switch
                 value={locationEnabled}
                 onValueChange={setLocationEnabled}
-                trackColor={{ false: '#767577', true: '#81b0ff' }}
-                thumbColor={locationEnabled ? '#2196F3' : '#f4f3f4'}
+                trackColor={{ false: '#e9ecef', true: '#667eea40' }}
+                thumbColor={locationEnabled ? '#667eea' : '#adb5bd'}
               />
             }
           />
@@ -206,21 +231,46 @@ export default function SettingsScreen() {
           />
         </View>
 
-        {/* User Info */}
+        {/* Modern User Info */}
         <View style={styles.userInfoContainer}>
-          <Text style={styles.userInfoText}>
-            Signed in as {user?.firstName} {user?.lastName}
-          </Text>
-          <Text style={styles.userInfoSubtext}>
-            {user?.email} • {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
-          </Text>
+          <LinearGradient
+            colors={['#FFFFFF', '#F8FAFF']}
+            style={styles.userInfoGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.userInfoContent}>
+              <View style={styles.userAvatarContainer}>
+                <MaterialCommunityIcons name="account" size={32} color="#667eea" />
+              </View>
+              <View style={styles.userTextContainer}>
+                <Text style={styles.userInfoText}>
+                  {user?.firstName} {user?.lastName}
+                </Text>
+                <Text style={styles.userInfoSubtext}>
+                  {user?.email} • {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
+                </Text>
+              </View>
+            </View>
+          </LinearGradient>
         </View>
 
-        {/* Logout Button */}
+        {/* Modern Logout Button */}
         <View style={styles.logoutContainer}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <MaterialCommunityIcons name="logout" size={24} color="#F44336" />
-            <Text style={styles.logoutText}>Logout</Text>
+          <TouchableOpacity 
+            style={styles.logoutButton} 
+            onPress={handleLogout}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={['#ff6b6b', '#ee5a52']}
+              style={styles.logoutButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <MaterialCommunityIcons name="logout" size={24} color="white" />
+              <Text style={styles.logoutText}>Logout</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -231,53 +281,69 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8faff',
   },
   header: {
-    backgroundColor: 'white',
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingTop: 30,
+    paddingBottom: 25,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: 'white',
+  },
+  searchButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollContent: {
+    paddingBottom: 30,
   },
   sectionHeader: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 30,
-    marginBottom: 10,
-    marginHorizontal: 20,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#2c3e50',
+    marginTop: 25,
+    marginBottom: 15,
+    marginHorizontal: 25,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   section: {
-    backgroundColor: 'white',
     marginHorizontal: 20,
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    marginBottom: 10,
   },
   settingItem: {
+    marginBottom: 15,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  settingItemNoBorder: {
+    marginBottom: 15,
+  },
+  settingItemGradient: {
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  settingItemNoBorder: {
-    borderBottomWidth: 0,
   },
   settingLeft: {
     flexDirection: 'row',
@@ -285,10 +351,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f0f8ff',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(102, 126, 234, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -297,60 +363,80 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 2,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#2c3e50',
+    marginBottom: 3,
   },
   settingSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#747d8c',
+    fontWeight: '500',
   },
   userInfoContainer: {
-    backgroundColor: 'white',
-    margin: 20,
-    padding: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-    elevation: 2,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 20,
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  userInfoGradient: {
+    padding: 20,
+  },
+  userInfoContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  userAvatarContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  userTextContainer: {
+    flex: 1,
   },
   userInfoText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2c3e50',
+    marginBottom: 5,
   },
   userInfoSubtext: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 15,
+    color: '#747d8c',
+    fontWeight: '500',
   },
   logoutContainer: {
-    margin: 20,
-    marginTop: 0,
+    marginHorizontal: 20,
+    marginBottom: 25,
   },
   logoutButton: {
-    backgroundColor: 'white',
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#ff6b6b',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  logoutButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#F44336',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    paddingVertical: 18,
   },
   logoutText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
-    color: '#F44336',
-    marginLeft: 8,
+    color: 'white',
+    marginLeft: 10,
   },
 });

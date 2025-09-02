@@ -13,13 +13,15 @@ export const USER_STATUS = {
   SUSPENDED: 'suspended',
 };
 
-// Emergency request types
+// Natural disaster request types
 export const REQUEST_TYPES = {
-  FOOD: 'food',
-  WATER: 'water',
-  MEDICINE: 'medicine',
-  SHELTER: 'shelter',
-  RESCUE: 'rescue',
+  FLOOD: 'flood',
+  EARTHQUAKE: 'earthquake',
+  LANDSLIDE: 'landslide',
+  TSUNAMI: 'tsunami',
+  WILDFIRE: 'wildfire',
+  CYCLONE: 'cyclone',
+  DROUGHT: 'drought',
   OTHER: 'other',
 };
 
@@ -40,12 +42,13 @@ export const REQUEST_STATUS = {
   CANCELLED: 'cancelled',
 };
 
-// Organization types
+// Organization types for disaster response
 export const ORGANIZATION_TYPES = {
-  NGO: 'ngo',
-  GOVERNMENT: 'government',
-  MEDICAL: 'medical',
-  EMERGENCY_SERVICES: 'emergency_services',
+  DISASTER_RELIEF: 'disaster_relief',
+  GOVERNMENT_EMERGENCY: 'government_emergency',
+  RED_CROSS: 'red_cross',
+  RESCUE_SERVICES: 'rescue_services',
+  RELIEF_NGO: 'relief_ngo',
 };
 
 // API endpoints

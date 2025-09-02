@@ -16,20 +16,21 @@ import { addMyRequest, setError } from '../../store/slices/requestsSlice';
 import ApiService from '../../services/apiService';
 
 const EMERGENCY_TYPES = [
-  { label: 'Medical Emergency', value: 'medical', icon: 'medical-bag' },
-  { label: 'Natural Disaster', value: 'natural_disaster', icon: 'weather-hurricane' },
-  { label: 'Fire Emergency', value: 'fire', icon: 'fire' },
-  { label: 'Security Threat', value: 'security', icon: 'shield-alert' },
-  { label: 'Infrastructure Damage', value: 'infrastructure', icon: 'home-alert' },
-  { label: 'Food/Water Shortage', value: 'supplies', icon: 'water' },
-  { label: 'Other Emergency', value: 'other', icon: 'alert' },
+  { label: 'Flood', value: 'flood', icon: 'waves' },
+  { label: 'Earthquake', value: 'earthquake', icon: 'vibrate' },
+  { label: 'Landslide', value: 'landslide', icon: 'landslide' },
+  { label: 'Tsunami', value: 'tsunami', icon: 'waves-arrow-right' },
+  { label: 'Wildfire', value: 'wildfire', icon: 'fire' },
+  { label: 'Cyclone/Hurricane', value: 'cyclone', icon: 'weather-hurricane' },
+  { label: 'Drought', value: 'drought', icon: 'weather-sunny-off' },
+  { label: 'Other Natural Disaster', value: 'other', icon: 'alert' },
 ];
 
 const URGENCY_LEVELS = [
-  { label: 'Low', value: 'low', color: '#4CAF50' },
-  { label: 'Medium', value: 'medium', color: '#FF9800' },
-  { label: 'High', value: 'high', color: '#F44336' },
-  { label: 'Critical', value: 'critical', color: '#9C27B0' },
+  { label: 'Low', value: 'low', color: '#26de81' },
+  { label: 'Medium', value: 'medium', color: '#fed330' },
+  { label: 'High', value: 'high', color: '#fd79a8' },
+  { label: 'Critical', value: 'critical', color: '#e55039' },
 ];
 
 export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
@@ -60,7 +61,7 @@ export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
     try {
       const newRequest = await ApiService.createEmergencyRequest(formData);
       dispatch(addMyRequest(newRequest));
-      Alert.alert('Success', 'Emergency request created successfully!', [
+      Alert.alert('Success', 'Disaster report submitted successfully!', [
         { text: 'OK', onPress: () => {
           onSuccess && onSuccess();
           onClose();
@@ -109,14 +110,14 @@ export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <MaterialCommunityIcons name="close" size={24} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.title}>Create Emergency Request</Text>
+          <Text style={styles.title}>Report Natural Disaster</Text>
           <View style={styles.placeholder} />
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Emergency Type */}
           <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Emergency Type *</Text>
+            <Text style={styles.label}>Disaster Type *</Text>
             <TouchableOpacity
               style={styles.picker}
               onPress={() => setShowTypePicker(true)}
@@ -126,12 +127,12 @@ export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
                   <MaterialCommunityIcons
                     name={getSelectedType().icon}
                     size={20}
-                    color="#2196F3"
+                    color="#667eea"
                   />
                   <Text style={styles.selectedText}>{getSelectedType().label}</Text>
                 </View>
               ) : (
-                <Text style={styles.placeholderText}>Select emergency type</Text>
+                <Text style={styles.placeholderText}>Select disaster type</Text>
               )}
               <MaterialCommunityIcons name="chevron-down" size={20} color="#666" />
             </TouchableOpacity>
@@ -159,7 +160,7 @@ export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
               style={styles.textArea}
               value={formData.description}
               onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
-              placeholder="Describe your emergency situation in detail..."
+              placeholder="Describe the natural disaster situation and your immediate needs..."
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -213,7 +214,7 @@ export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Select Emergency Type</Text>
+              <Text style={styles.modalTitle}>Select Disaster Type</Text>
               {EMERGENCY_TYPES.map((type) => (
                 <TouchableOpacity
                   key={type.value}
@@ -223,7 +224,7 @@ export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
                     setShowTypePicker(false);
                   }}
                 >
-                  <MaterialCommunityIcons name={type.icon} size={24} color="#2196F3" />
+                  <MaterialCommunityIcons name={type.icon} size={24} color="#667eea" />
                   <Text style={styles.optionText}>{type.label}</Text>
                 </TouchableOpacity>
               ))}
@@ -361,7 +362,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   submitButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#667eea',
     borderRadius: 8,
     padding: 16,
     flexDirection: 'row',

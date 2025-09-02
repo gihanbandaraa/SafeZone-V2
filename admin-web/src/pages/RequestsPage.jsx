@@ -104,7 +104,7 @@ const RequestsPage = () => {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Emergency Requests
+        Natural Disaster Reports
       </Typography>
       
       <TableContainer component={Paper}>

@@ -7,10 +7,12 @@ import {
   ScrollView,
   Alert,
   Modal,
+  StatusBar,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { selectCurrentUser, logout } from '../../store/slices/authSlice';
 
 export default function ProfileScreen() {
@@ -56,11 +58,11 @@ export default function ProfileScreen() {
       case 'victim':
         return '#FF5722';
       case 'volunteer':
-        return '#4CAF50';
+        return '#26de81';
       case 'organization':
         return '#2196F3';
       case 'admin':
-        return '#9C27B0';
+        return '#a55eea';
       default:
         return '#666';
     }
@@ -101,90 +103,147 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
+      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+      
+      {/* Modern Header with Gradient */}
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        style={styles.header}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.headerContent}>
           <Text style={styles.title}>Profile</Text>
+          <TouchableOpacity style={styles.settingsButton}>
+            <MaterialCommunityIcons name="cog" size={24} color="white" />
+          </TouchableOpacity>
         </View>
+      </LinearGradient>
 
-        {/* User Info Card */}
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Modern User Info Card */}
         <View style={styles.userCard}>
-          <View style={styles.avatarContainer}>
-            <MaterialCommunityIcons
-              name={getRoleIcon(user?.role)}
-              size={60}
-              color={getRoleColor(user?.role)}
-            />
-          </View>
-          
-          <Text style={styles.userName}>
-            {user?.firstName} {user?.lastName}
-          </Text>
-          
-          <View style={[styles.roleBadge, { backgroundColor: getRoleColor(user?.role) }]}>
-            <MaterialCommunityIcons
-              name={getRoleIcon(user?.role)}
-              size={16}
-              color="white"
-            />
-            <Text style={styles.roleText}>
-              {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
-            </Text>
-          </View>
-
-          <View style={styles.userDetails}>
-            <View style={styles.detailItem}>
-              <MaterialCommunityIcons name="email" size={16} color="#666" />
-              <Text style={styles.detailText}>{user?.email}</Text>
-            </View>
-            
-            {user?.phone && (
-              <View style={styles.detailItem}>
-                <MaterialCommunityIcons name="phone" size={16} color="#666" />
-                <Text style={styles.detailText}>{user?.phone}</Text>
+          <LinearGradient
+            colors={['#FFFFFF', '#F8FAFF']}
+            style={styles.userCardGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.avatarSection}>
+              <View style={[styles.avatarContainer, { backgroundColor: `${getRoleColor(user?.role)}15` }]}>
+                <MaterialCommunityIcons
+                  name={getRoleIcon(user?.role)}
+                  size={60}
+                  color={getRoleColor(user?.role)}
+                />
               </View>
-            )}
-            
-            <View style={styles.detailItem}>
-              <MaterialCommunityIcons name="calendar" size={16} color="#666" />
-              <Text style={styles.detailText}>
-                Joined {new Date(user?.createdAt).toLocaleDateString()}
+              
+              <Text style={styles.userName}>
+                {user?.firstName} {user?.lastName}
               </Text>
+              
+              <LinearGradient
+                colors={[getRoleColor(user?.role), `${getRoleColor(user?.role)}CC`]}
+                style={styles.roleBadge}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <MaterialCommunityIcons
+                  name={getRoleIcon(user?.role)}
+                  size={16}
+                  color="white"
+                />
+                <Text style={styles.roleText}>
+                  {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
+                </Text>
+              </LinearGradient>
             </View>
-          </View>
+
+            <View style={styles.userDetails}>
+              <View style={styles.detailItem}>
+                <View style={styles.detailIconContainer}>
+                  <MaterialCommunityIcons name="email" size={20} color="#667eea" />
+                </View>
+                <Text style={styles.detailText}>{user?.email}</Text>
+              </View>
+              
+              {user?.phone && (
+                <View style={styles.detailItem}>
+                  <View style={styles.detailIconContainer}>
+                    <MaterialCommunityIcons name="phone" size={20} color="#667eea" />
+                  </View>
+                  <Text style={styles.detailText}>{user?.phone}</Text>
+                </View>
+              )}
+              
+              <View style={styles.detailItem}>
+                <View style={styles.detailIconContainer}>
+                  <MaterialCommunityIcons name="calendar" size={20} color="#667eea" />
+                </View>
+                <Text style={styles.detailText}>
+                  Joined {new Date(user?.createdAt).toLocaleDateString()}
+                </Text>
+              </View>
+            </View>
+          </LinearGradient>
         </View>
 
-        {/* Menu Items */}
+        {/* Modern Menu Items */}
         <View style={styles.menuContainer}>
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.menuItem}
+              style={[
+                styles.menuItem,
+                index === menuItems.length - 1 && styles.lastMenuItem
+              ]}
               onPress={item.onPress}
+              activeOpacity={0.7}
             >
-              <View style={styles.menuItemLeft}>
-                <View style={styles.menuIconContainer}>
-                  <MaterialCommunityIcons
-                    name={item.icon}
-                    size={24}
-                    color="#2196F3"
-                  />
+              <LinearGradient
+                colors={['#FFFFFF', '#F8FAFF']}
+                style={styles.menuItemGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <View style={styles.menuItemLeft}>
+                  <View style={styles.menuIconContainer}>
+                    <MaterialCommunityIcons
+                      name={item.icon}
+                      size={24}
+                      color="#667eea"
+                    />
+                  </View>
+                  <View style={styles.menuTextContainer}>
+                    <Text style={styles.menuTitle}>{item.title}</Text>
+                    <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                  </View>
                 </View>
-                <View style={styles.menuTextContainer}>
-                  <Text style={styles.menuTitle}>{item.title}</Text>
-                  <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
-                </View>
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={20} color="#ccc" />
+                <MaterialCommunityIcons name="chevron-right" size={20} color="#c8d6e5" />
+              </LinearGradient>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Logout Button */}
+        {/* Modern Logout Button */}
         <View style={styles.logoutContainer}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <MaterialCommunityIcons name="logout" size={24} color="#F44336" />
-            <Text style={styles.logoutText}>Logout</Text>
+          <TouchableOpacity 
+            style={styles.logoutButton} 
+            onPress={handleLogout}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={['#ff6b6b', '#ee5a52']}
+              style={styles.logoutButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <MaterialCommunityIcons name="logout" size={24} color="white" />
+              <Text style={styles.logoutText}>Logout</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
@@ -200,61 +259,91 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8faff',
   },
   header: {
-    backgroundColor: 'white',
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingTop: 30,
+    paddingBottom: 25,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: 'white',
   },
-  userCard: {
-    backgroundColor: 'white',
-    margin: 20,
-    padding: 20,
-    borderRadius: 16,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#f0f0f0',
+  settingsButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+  },
+  scrollContent: {
+    paddingBottom: 30,
+  },
+  userCard: {
+    margin: 20,
+    marginTop: -15,
+    borderRadius: 25,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  userCardGradient: {
+    padding: 25,
+  },
+  avatarSection: {
+    alignItems: 'center',
+    marginBottom: 25,
+  },
+  avatarContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   userName: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
+    color: '#2c3e50',
+    marginBottom: 12,
+    textAlign: 'center',
   },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   roleText: {
     color: 'white',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 'bold',
-    marginLeft: 6,
+    marginLeft: 8,
   },
   userDetails: {
     width: '100%',
@@ -262,33 +351,44 @@ const styles = StyleSheet.create({
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    paddingHorizontal: 4,
+    marginBottom: 15,
+    paddingHorizontal: 5,
+  },
+  detailIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
   },
   detailText: {
     fontSize: 16,
-    color: '#666',
-    marginLeft: 12,
+    color: '#34495e',
+    fontWeight: '500',
+    flex: 1,
   },
   menuContainer: {
-    backgroundColor: 'white',
     marginHorizontal: 20,
-    borderRadius: 16,
-    overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    marginBottom: 20,
   },
   menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    marginBottom: 15,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  lastMenuItem: {
+    marginBottom: 0,
+  },
+  menuItemGradient: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    paddingVertical: 18,
   },
   menuItemLeft: {
     flexDirection: 'row',
@@ -296,10 +396,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f0f8ff',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(102, 126, 234, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -308,38 +408,40 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 2,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#2c3e50',
+    marginBottom: 3,
   },
   menuSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#747d8c',
+    fontWeight: '500',
   },
   logoutContainer: {
-    margin: 20,
+    marginHorizontal: 20,
+    marginBottom: 25,
   },
   logoutButton: {
-    backgroundColor: 'white',
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#ff6b6b',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  logoutButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#F44336',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    paddingVertical: 18,
   },
   logoutText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
-    color: '#F44336',
-    marginLeft: 8,
+    color: 'white',
+    marginLeft: 10,
   },
   versionContainer: {
     alignItems: 'center',
@@ -347,6 +449,7 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 14,
-    color: '#999',
+    color: '#a4b0be',
+    fontWeight: '500',
   },
 });

@@ -4,41 +4,43 @@ export const theme = {
   ...MD3LightTheme,
   colors: {
     ...MD3LightTheme.colors,
-    primary: '#2196F3',
+    primary: '#667eea',
     secondary: '#FFC107',
-    tertiary: '#4CAF50',
+    tertiary: '#26de81',
     surface: '#FFFFFF',
     background: '#F5F5F5',
-    error: '#F44336',
-    warning: '#FF9800',
-    success: '#4CAF50',
+    error: '#fc5c65',
+    warning: '#fed330',
+    success: '#26de81',
     info: '#2196F3',
     
-    // Emergency type colors
-    emergency: {
-      food: '#FF9800',
-      water: '#2196F3',
-      medicine: '#E91E63',
-      shelter: '#9C27B0',
-      rescue: '#F44336',
-      other: '#607D8B',
+    // Natural disaster type colors
+    disaster: {
+      flood: '#3742fa',
+      earthquake: '#8d5524',
+      landslide: '#5D4037',
+      tsunami: '#0abde3',
+      wildfire: '#ff3838',
+      cyclone: '#a55eea',
+      drought: '#fed330',
+      other: '#747d8c',
     },
     
     // Status colors
     status: {
-      pending: '#FF9800',
-      assigned: '#2196F3',
-      in_progress: '#9C27B0',
-      completed: '#4CAF50',
-      cancelled: '#F44336',
+      pending: '#ff9f43',
+      assigned: '#3742fa',
+      in_progress: '#a55eea',
+      completed: '#26de81',
+      cancelled: '#fc5c65',
     },
     
     // Priority colors
     priority: {
-      low: '#4CAF50',
-      medium: '#FF9800',
-      high: '#FF5722',
-      critical: '#F44336',
+      low: '#26de81',
+      medium: '#fed330',
+      high: '#fd79a8',
+      critical: '#e55039',
     },
   },
   

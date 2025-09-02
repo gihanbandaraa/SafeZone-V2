@@ -21,7 +21,7 @@ const Organization = sequelize.define('Organization', {
     validate: { len: [2, 200] }
   },
   type: {
-    type: DataTypes.ENUM('ngo', 'government', 'medical', 'emergency_services'),
+    type: DataTypes.ENUM('disaster_relief', 'government_emergency', 'red_cross', 'rescue_services', 'relief_ngo'),
     allowNull: false
   },
   description: {

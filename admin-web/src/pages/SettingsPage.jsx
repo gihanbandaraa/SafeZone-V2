@@ -33,7 +33,7 @@ const SettingsPage = () => {
             
             <FormControlLabel
               control={<Switch defaultChecked />}
-              label="Auto-approve emergency requests"
+              label="Auto-approve disaster reports"
               sx={{ mb: 2 }}
             />
             
@@ -55,7 +55,7 @@ const SettingsPage = () => {
             
             <TextField
               fullWidth
-              label="Emergency hotline number"
+              label="Disaster relief hotline number"
               defaultValue="+1-800-EMERGENCY"
               sx={{ mb: 2 }}
             />

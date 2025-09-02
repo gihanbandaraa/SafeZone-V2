@@ -10,53 +10,71 @@ async function createTestRequests() {
       return;
     }
 
-    // Create sample emergency requests
+    // Create sample natural disaster requests
     const requests = [
       {
         userId: victim.id,
-        type: 'Medical Emergency',
-        description: 'Person collapsed on the street, needs immediate medical attention',
-        location: 'Main Street, Downtown',
+        type: 'flood',
+        description: 'Major flooding in residential area, families trapped on second floors',
+        location: 'River Valley District, Low-lying areas',
         urgency: 'critical',
         status: 'pending',
-        contactInfo: 'Call 555-0123'
+        contactInfo: 'Multiple families affected: 555-0123'
       },
       {
         userId: victim.id,
-        type: 'Fire',
-        description: 'Building fire reported, evacuation needed',
-        location: 'Oak Avenue, Building 123',
-        urgency: 'high',
+        type: 'earthquake',
+        description: 'Earthquake damage, building partially collapsed, people trapped',
+        location: 'Downtown Business District, Old Building',
+        urgency: 'critical',
         status: 'assigned',
-        contactInfo: 'Building manager: 555-0456'
+        contactInfo: 'Building security: 555-0456'
       },
       {
         userId: victim.id,
-        type: 'Natural Disaster',
-        description: 'Flood damage, need shelter and supplies',
-        location: 'River Road, Residential Area',
-        urgency: 'medium',
-        status: 'in_progress',
-        contactInfo: 'Family of 4: 555-0789'
-      },
-      {
-        userId: victim.id,
-        type: 'Accident',
-        description: 'Car accident on highway, injuries reported',
-        location: 'Highway 101, Mile Marker 45',
+        type: 'landslide',
+        description: 'Landslide blocked main road, vehicles and people trapped',
+        location: 'Mountain Highway, Slope area near Mile 23',
         urgency: 'high',
+        status: 'in_progress',
+        contactInfo: 'Road maintenance: 555-0789'
+      },
+      {
+        userId: victim.id,
+        type: 'wildfire',
+        description: 'Wildfire approaching residential area, evacuation needed',
+        location: 'Forest Hills neighborhood, near Pine Ridge',
+        urgency: 'critical',
+        status: 'pending',
+        contactInfo: 'Community leader: 555-0321'
+      },
+      {
+        userId: victim.id,
+        type: 'tsunami',
+        description: 'Tsunami warning issued, coastal evacuation in progress',
+        location: 'Coastal Highway, Beach communities',
+        urgency: 'critical',
         status: 'completed',
-        contactInfo: 'Emergency services already notified',
+        contactInfo: 'Emergency services coordinated evacuation',
         completedAt: new Date()
       },
       {
         userId: victim.id,
-        type: 'Missing Person',
-        description: 'Child missing since yesterday evening',
-        location: 'Central Park area',
-        urgency: 'critical',
+        type: 'cyclone',
+        description: 'Hurricane/Cyclone approaching, strong winds and flooding expected',
+        location: 'Coastal regions, multiple districts',
+        urgency: 'high',
         status: 'pending',
-        contactInfo: 'Parent: 555-0321'
+        contactInfo: 'Meteorological office: 555-0987'
+      },
+      {
+        userId: victim.id,
+        type: 'drought',
+        description: 'Severe drought affecting rural communities, water shortage critical',
+        location: 'Rural farming district, multiple villages',
+        urgency: 'medium',
+        status: 'assigned',
+        contactInfo: 'Village council: 555-0654'
       }
     ];
 
@@ -64,7 +82,7 @@ async function createTestRequests() {
       await EmergencyRequest.create(request);
     }
 
-    console.log('✅ Sample emergency requests created successfully!');
+    console.log('✅ Sample natural disaster requests created successfully!');
     
   } catch (error) {
     console.error('❌ Error creating test requests:', error);

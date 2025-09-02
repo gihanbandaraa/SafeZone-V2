@@ -36,12 +36,12 @@ async function setupDatabase() {
     // Create organization profile
     await Organization.create({
       userId: orgUser.id,
-      name: 'Red Cross Emergency Services',
-      type: 'ngo',
-      description: 'Emergency relief organization',
+      name: 'Red Cross Disaster Relief',
+      type: 'red_cross',
+      description: 'International disaster relief and emergency assistance organization',
       verified: true,
-      serviceAreas: ['medical', 'rescue', 'shelter'],
-      capabilities: ['first_aid', 'evacuation', 'food_distribution']
+      serviceAreas: ['flood', 'earthquake', 'tsunami', 'wildfire'],
+      capabilities: ['evacuation', 'shelter_management', 'emergency_supplies', 'search_rescue']
     });
     console.log('🏢 Sample organization created (org@safezone.com / org123)');
     

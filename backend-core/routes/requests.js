@@ -141,7 +141,7 @@ router.post('/:id/accept', authenticateToken, async (req, res) => {
 // Create emergency request (simplified for mobile)
 router.post('/', [
   authenticateToken,
-  body('type').isIn(['medical', 'natural_disaster', 'fire', 'security', 'infrastructure', 'supplies', 'other']).withMessage('Invalid emergency type'),
+  body('type').isIn(['flood', 'earthquake', 'landslide', 'tsunami', 'wildfire', 'cyclone', 'drought', 'other']).withMessage('Invalid disaster type'),
   body('description').trim().isLength({ min: 10 }).withMessage('Description must be at least 10 characters'),
   body('location').notEmpty().withMessage('Location is required'),
   body('urgency').isIn(['low', 'medium', 'high', 'critical']).withMessage('Invalid urgency level')

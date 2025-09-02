@@ -9,7 +9,10 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  Dimensions,
+  StatusBar,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSelector, useDispatch } from 'react-redux';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,12 +27,14 @@ import {
 import { selectCurrentUser } from '../../store/slices/authSlice';
 import ApiService from '../../services/apiService';
 
+const { width, height } = Dimensions.get('window');
+
 const STATUS_COLORS = {
-  pending: '#FF9800',
-  assigned: '#2196F3',
-  in_progress: '#26C6DA',
-  completed: '#4CAF50',
-  cancelled: '#F44336',
+  pending: '#ff9f43',
+  assigned: '#3742fa',
+  in_progress: '#a55eea',
+  completed: '#26de81',
+  cancelled: '#fc5c65',
 };
 
 const STATUS_ICONS = {
@@ -41,20 +46,21 @@ const STATUS_ICONS = {
 };
 
 const URGENCY_COLORS = {
-  low: '#4CAF50',
-  medium: '#FF9800',
-  high: '#F44336',
-  critical: '#9C27B0',
+  low: '#26de81',
+  medium: '#fed330',
+  high: '#fd79a8',
+  critical: '#e55039',
 };
 
 const TYPE_ICONS = {
-  medical: 'medical-bag',
-  natural_disaster: 'weather-hurricane',
-  fire: 'fire',
-  security: 'shield-alert',
-  infrastructure: 'home-alert',
-  supplies: 'water',
-  other: 'alert',
+  'flood': 'waves',
+  'earthquake': 'vibrate',
+  'landslide': 'landslide',
+  'tsunami': 'waves-arrow-right',
+  'wildfire': 'fire',
+  'cyclone': 'weather-hurricane',
+  'drought': 'weather-sunny-off',
+  'other': 'alert',
 };
 
 export default function OrganizationHomeScreen() {
@@ -129,117 +135,165 @@ export default function OrganizationHomeScreen() {
   };
 
   const renderRequestItem = ({ item }) => (
-    <View style={styles.requestCard}>
-      <View style={styles.requestHeader}>
-        <View style={styles.typeContainer}>
-          <MaterialCommunityIcons
-            name={TYPE_ICONS[item.type] || 'alert'}
-            size={20}
-            color="#2196F3"
-          />
-          <Text style={styles.requestType}>
-            {item.type?.replace('_', ' ').toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.badges}>
-          <View style={[styles.urgencyBadge, { backgroundColor: URGENCY_COLORS[item.urgency] }]}>
-            <Text style={styles.badgeText}>{item.urgency?.toUpperCase()}</Text>
+    <TouchableOpacity style={styles.requestCard} activeOpacity={0.95}>
+      <LinearGradient
+        colors={['#FFFFFF', '#F8FAFF']}
+        style={styles.cardGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.requestHeader}>
+          <View style={styles.typeContainer}>
+            <View style={styles.typeIconContainer}>
+              <MaterialCommunityIcons
+                name={TYPE_ICONS[item.type] || 'alert'}
+                size={20}
+                color="#667eea"
+              />
+            </View>
+            <View style={styles.typeTextContainer}>
+              <Text style={styles.requestType}>
+                {item.type?.replace('_', ' ')}
+              </Text>
+              <Text style={styles.requestId}>ID: #{item.id}</Text>
+            </View>
           </View>
+          
+          <View style={styles.badges}>
+            <View style={[styles.urgencyBadge, { backgroundColor: URGENCY_COLORS[item.urgency] }]}>
+              <Text style={styles.badgeText}>{item.urgency?.toUpperCase()}</Text>
+            </View>
+          </View>
+        </View>
+
+        <Text style={styles.requestDescription} numberOfLines={3}>
+          {item.description}
+        </Text>
+
+        <View style={styles.requestDetails}>
+          <View style={styles.detailRow}>
+            <View style={styles.detailItem}>
+              <MaterialCommunityIcons name="map-marker" size={16} color="#666" />
+              <Text style={styles.detailText} numberOfLines={1}>{item.location}</Text>
+            </View>
+          </View>
+          
+          <View style={styles.detailRow}>
+            <View style={styles.detailItem}>
+              <MaterialCommunityIcons name="clock-outline" size={16} color="#666" />
+              <Text style={styles.detailText}>
+                {new Date(item.createdAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {item.User && (
+          <View style={styles.userInfo}>
+            <MaterialCommunityIcons name="account-circle" size={16} color="#4A90E2" />
+            <Text style={styles.userName}>
+              {item.User.firstName} {item.User.lastName}
+            </Text>
+          </View>
+        )}
+
+        {item.assignedVolunteer && (
+          <View style={styles.volunteerInfo}>
+            <MaterialCommunityIcons name="account-heart" size={16} color="#26de81" />
+            <Text style={styles.volunteerName}>
+              Assigned: {item.assignedVolunteer.firstName} {item.assignedVolunteer.lastName}
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.statusContainer}>
           <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] }]}>
             <MaterialCommunityIcons
               name={STATUS_ICONS[item.status]}
-              size={12}
+              size={14}
               color="white"
             />
-            <Text style={styles.badgeText}>{item.status?.replace('_', ' ').toUpperCase()}</Text>
+            <Text style={styles.statusText}>{item.status?.replace('_', ' ').toUpperCase()}</Text>
           </View>
         </View>
-      </View>
 
-      <Text style={styles.requestDescription} numberOfLines={2}>
-        {item.description}
-      </Text>
-
-      <View style={styles.requestDetails}>
-        <View style={styles.detailItem}>
-          <MaterialCommunityIcons name="map-marker" size={16} color="#666" />
-          <Text style={styles.detailText}>{item.location}</Text>
+        <View style={styles.actionButtons}>
+          {item.status === 'pending' && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.assignButton]}
+              onPress={() => handleUpdateStatus(item.id, 'assigned')}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="account-check" size={16} color="white" />
+              <Text style={styles.actionButtonText}>Assign</Text>
+            </TouchableOpacity>
+          )}
+          {item.status === 'assigned' && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.progressButton]}
+              onPress={() => handleUpdateStatus(item.id, 'in_progress')}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="play" size={16} color="white" />
+              <Text style={styles.actionButtonText}>Start</Text>
+            </TouchableOpacity>
+          )}
+          {item.status === 'in_progress' && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.completeButton]}
+              onPress={() => handleUpdateStatus(item.id, 'completed')}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="check" size={16} color="white" />
+              <Text style={styles.actionButtonText}>Complete</Text>
+            </TouchableOpacity>
+          )}
+          {(item.status === 'pending' || item.status === 'assigned') && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.cancelButton]}
+              onPress={() => handleUpdateStatus(item.id, 'cancelled')}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="close" size={16} color="white" />
+              <Text style={styles.actionButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          )}
         </View>
-        <View style={styles.detailItem}>
-          <MaterialCommunityIcons name="clock-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>
-            {new Date(item.createdAt).toLocaleDateString()}
-          </Text>
-        </View>
-      </View>
-
-      {item.User && (
-        <View style={styles.userInfo}>
-          <MaterialCommunityIcons name="account" size={16} color="#666" />
-          <Text style={styles.userName}>
-            Requested by: {item.User.firstName} {item.User.lastName}
-          </Text>
-        </View>
-      )}
-
-      {item.assignedVolunteer && (
-        <View style={styles.volunteerInfo}>
-          <MaterialCommunityIcons name="account-heart" size={16} color="#4CAF50" />
-          <Text style={styles.volunteerName}>
-            Volunteer: {item.assignedVolunteer.firstName} {item.assignedVolunteer.lastName}
-          </Text>
-        </View>
-      )}
-
-      <View style={styles.actionButtons}>
-        {item.status === 'pending' && (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#2196F3' }]}
-            onPress={() => handleUpdateStatus(item.id, 'assigned')}
-          >
-            <Text style={styles.actionButtonText}>Assign</Text>
-          </TouchableOpacity>
-        )}
-        {item.status === 'assigned' && (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#26C6DA' }]}
-            onPress={() => handleUpdateStatus(item.id, 'in_progress')}
-          >
-            <Text style={styles.actionButtonText}>Start Progress</Text>
-          </TouchableOpacity>
-        )}
-        {item.status === 'in_progress' && (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#4CAF50' }]}
-            onPress={() => handleUpdateStatus(item.id, 'completed')}
-          >
-            <Text style={styles.actionButtonText}>Complete</Text>
-          </TouchableOpacity>
-        )}
-        {(item.status === 'pending' || item.status === 'assigned') && (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#F44336' }]}
-            onPress={() => handleUpdateStatus(item.id, 'cancelled')}
-          >
-            <Text style={styles.actionButtonText}>Cancel</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
+      </LinearGradient>
+    </TouchableOpacity>
   );
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <MaterialCommunityIcons name="clipboard-list-outline" size={64} color="#ccc" />
+      <View style={styles.emptyIconContainer}>
+        <MaterialCommunityIcons name="clipboard-list-outline" size={80} color="#E0E0E0" />
+      </View>
       <Text style={styles.emptyTitle}>No Requests Found</Text>
       <Text style={styles.emptySubtitle}>
         {statusFilter === 'all' 
-          ? 'There are currently no emergency requests.'
-          : `No requests with status "${statusFilter.replace('_', ' ')}".`
+          ? 'There are currently no emergency requests in the system.'
+          : `No requests found with "${statusFilter.replace('_', ' ')}" status.`
         }
       </Text>
-      <TouchableOpacity style={styles.refreshButton} onPress={loadAllRequests}>
-        <Text style={styles.refreshButtonText}>Refresh</Text>
+      <TouchableOpacity 
+        style={styles.refreshButton} 
+        onPress={loadAllRequests}
+        activeOpacity={0.8}
+      >
+        <LinearGradient
+          colors={['#ff6b6b', '#ee5a6f']}
+          style={styles.refreshButtonGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <MaterialCommunityIcons name="refresh" size={20} color="white" />
+          <Text style={styles.refreshButtonText}>Refresh</Text>
+        </LinearGradient>
       </TouchableOpacity>
     </View>
   );
@@ -247,245 +301,363 @@ export default function OrganizationHomeScreen() {
   const filteredRequests = getFilteredRequests();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Manage Requests</Text>
-          <Text style={styles.subtitle}>
-            Welcome, {user?.organizationName || user?.firstName}!
-          </Text>
-        </View>
-        <MaterialCommunityIcons name="bell-outline" size={24} color="#666" />
-      </View>
-
-      {/* Stats Row */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{getStatusCount('pending')}</Text>
-          <Text style={styles.statLabel}>Pending</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{getStatusCount('in_progress')}</Text>
-          <Text style={styles.statLabel}>In Progress</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{getStatusCount('completed')}</Text>
-          <Text style={styles.statLabel}>Completed</Text>
-        </View>
-      </View>
-
-      {/* Filter */}
-      <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setShowStatusModal(true)}
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <SafeAreaView style={styles.container}>
+        <LinearGradient
+          colors={['#667eea', '#764ba2']}
+          style={styles.header}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         >
-          <Text style={styles.filterText}>
-            {statusOptions.find(opt => opt.value === statusFilter)?.label}
-          </Text>
-          <MaterialCommunityIcons name="chevron-down" size={20} color="#666" />
-        </TouchableOpacity>
-      </View>
-
-      {loading && allRequests.length === 0 ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2196F3" />
-          <Text style={styles.loadingText}>Loading requests...</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filteredRequests}
-          renderItem={renderRequestItem}
-          keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
-          contentContainerStyle={
-            filteredRequests.length === 0 ? styles.emptyContainer : styles.listContainer
-          }
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          ListEmptyComponent={renderEmptyState}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-
-      {/* Status Filter Modal */}
-      <Modal
-        visible={showStatusModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowStatusModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Filter by Status</Text>
-            {statusOptions.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={styles.optionItem}
-                onPress={() => {
-                  setStatusFilter(option.value);
-                  setShowStatusModal(false);
-                }}
-              >
-                <Text style={styles.optionText}>{option.label}</Text>
-                {statusFilter === option.value && (
-                  <MaterialCommunityIcons name="check" size={20} color="#2196F3" />
-                )}
+          <View style={styles.headerContent}>
+            <View style={styles.headerTop}>
+              <View style={styles.headerText}>
+                <Text style={styles.title}>Emergency Control</Text>
+                <Text style={styles.subtitle}>
+                  {user?.organizationName || `${user?.firstName} ${user?.lastName}`}
+                </Text>
+              </View>
+              <TouchableOpacity style={styles.notificationButton}>
+                <MaterialCommunityIcons name="bell-outline" size={24} color="white" />
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationText}>{getStatusCount('pending')}</Text>
+                </View>
               </TouchableOpacity>
-            ))}
+            </View>
+
+            {/* Stats Row */}
+            <View style={styles.statsContainer}>
+              <View style={styles.statCard}>
+                <View style={styles.statIconContainer}>
+                  <MaterialCommunityIcons name="clock-outline" size={24} color="#ff9f43" />
+                </View>
+                <Text style={styles.statNumber}>{getStatusCount('pending')}</Text>
+                <Text style={styles.statLabel}>Pending</Text>
+              </View>
+              
+              <View style={styles.statCard}>
+                <View style={styles.statIconContainer}>
+                  <MaterialCommunityIcons name="progress-clock" size={24} color="#a55eea" />
+                </View>
+                <Text style={styles.statNumber}>{getStatusCount('in_progress')}</Text>
+                <Text style={styles.statLabel}>Active</Text>
+              </View>
+              
+              <View style={styles.statCard}>
+                <View style={styles.statIconContainer}>
+                  <MaterialCommunityIcons name="check-circle" size={24} color="#26de81" />
+                </View>
+                <Text style={styles.statNumber}>{getStatusCount('completed')}</Text>
+                <Text style={styles.statLabel}>Completed</Text>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
+
+        <View style={styles.contentContainer}>
+          {/* Filter */}
+          <View style={styles.filterContainer}>
             <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => setShowStatusModal(false)}
+              style={styles.filterButton}
+              onPress={() => setShowStatusModal(true)}
+              activeOpacity={0.8}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <View style={styles.filterContent}>
+                <MaterialCommunityIcons name="filter-variant" size={20} color="#4A90E2" />
+                <Text style={styles.filterText}>
+                  {statusOptions.find(opt => opt.value === statusFilter)?.label}
+                </Text>
+              </View>
+              <MaterialCommunityIcons name="chevron-down" size={20} color="#666" />
             </TouchableOpacity>
           </View>
+
+          {loading && allRequests.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#4A90E2" />
+              <Text style={styles.loadingText}>Loading requests...</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredRequests}
+              renderItem={renderRequestItem}
+              keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+              contentContainerStyle={
+                filteredRequests.length === 0 ? styles.emptyContainer : styles.listContainer
+              }
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#667eea']} />
+              }
+              ListEmptyComponent={renderEmptyState}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
         </View>
-      </Modal>
-    </SafeAreaView>
+
+        {/* Status Filter Modal */}
+        <Modal
+          visible={showStatusModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowStatusModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Filter Requests</Text>
+                <TouchableOpacity
+                  style={styles.modalCloseButton}
+                  onPress={() => setShowStatusModal(false)}
+                >
+                  <MaterialCommunityIcons name="close" size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+              
+              {statusOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.optionItem,
+                    statusFilter === option.value && styles.selectedOption
+                  ]}
+                  onPress={() => {
+                    setStatusFilter(option.value);
+                    setShowStatusModal(false);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    statusFilter === option.value && styles.selectedOptionText
+                  ]}>
+                    {option.label}
+                  </Text>
+                  {statusFilter === option.value && (
+                    <MaterialCommunityIcons name="check-circle" size={20} color="#4A90E2" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </Modal>
+      </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8F9FA',
   },
   header: {
-    backgroundColor: 'white',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  headerContent: {
+    paddingHorizontal: 24,
+    paddingTop: height * 0.05,
+  },
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    marginBottom: 32,
+  },
+  headerText: {
+    flex: 1,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
+    fontSize: 28,
+    fontWeight: '700',
+    color: 'white',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '300',
+  },
+  notificationButton: {
+    position: 'relative',
+    padding: 8,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#FF5722',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
   },
   statsContainer: {
-    backgroundColor: 'white',
     flexDirection: 'row',
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    justifyContent: 'space-between',
+    gap: 12,
   },
-  statItem: {
+  statCard: {
     flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 16,
+    padding: 16,
     alignItems: 'center',
+    backdropFilter: 'blur(10px)',
+  },
+  statIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   statNumber: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2196F3',
+    fontWeight: '700',
+    color: 'white',
+    marginBottom: 4,
   },
   statLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  contentContainer: {
+    flex: 1,
   },
   filterContainer: {
     backgroundColor: 'white',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   filterButton: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  filterContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   filterText: {
     fontSize: 16,
     color: '#333',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   listContainer: {
-    padding: 15,
-    paddingBottom: 30,
+    padding: 16,
+    paddingBottom: 32,
   },
   emptyContainer: {
     flex: 1,
   },
   requestCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 15,
-    elevation: 2,
+    marginBottom: 16,
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  cardGradient: {
+    borderRadius: 16,
+    padding: 20,
   },
   requestHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
   typeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
+  typeIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E3F2FD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  typeTextContainer: {
+    flex: 1,
+  },
   requestType: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#333',
-    marginLeft: 8,
+    marginBottom: 2,
+  },
+  requestId: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
   badges: {
-    flexDirection: 'row',
-    gap: 8,
+    alignItems: 'flex-end',
   },
   urgencyBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   badgeText: {
     color: 'white',
     fontSize: 10,
-    fontWeight: 'bold',
-    marginLeft: 2,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   requestDescription: {
     fontSize: 16,
-    color: '#333',
-    lineHeight: 22,
-    marginBottom: 12,
+    color: '#555',
+    lineHeight: 24,
+    marginBottom: 16,
   },
   requestDetails: {
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  detailRow: {
+    marginBottom: 8,
   },
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
   },
   detailText: {
     fontSize: 14,
     color: '#666',
-    marginLeft: 6,
+    marginLeft: 8,
+    flex: 1,
   },
   userInfo: {
     flexDirection: 'row',
@@ -494,36 +666,69 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 14,
-    color: '#666',
-    marginLeft: 6,
+    color: '#4A90E2',
+    marginLeft: 8,
+    fontWeight: '500',
   },
   volunteerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   volunteerName: {
     fontSize: 14,
-    color: '#4CAF50',
-    marginLeft: 6,
-    fontWeight: '500',
+    color: '#26de81',
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  statusContainer: {
+    marginBottom: 16,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  statusText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+    letterSpacing: 0.5,
   },
   actionButtons: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 8,
   },
   actionButton: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    gap: 6,
+  },
+  assignButton: {
+    backgroundColor: '#4A90E2',
+  },
+  progressButton: {
+    backgroundColor: '#a55eea',
+  },
+  completeButton: {
+    backgroundColor: '#26de81',
+  },
+  cancelButton: {
+    backgroundColor: '#fc5c65',
   },
   actionButtonText: {
     color: 'white',
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   emptyState: {
     flex: 1,
@@ -531,30 +736,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
   },
+  emptyIconContainer: {
+    marginBottom: 24,
+  },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '700',
     color: '#333',
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 20,
+    lineHeight: 24,
+    marginBottom: 32,
   },
   refreshButton: {
-    backgroundColor: '#2196F3',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 6,
+    borderRadius: 12,
+    shadowColor: '#4A90E2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  refreshButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
   },
   refreshButtonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
@@ -562,49 +781,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 15,
+    marginTop: 16,
     fontSize: 16,
     color: '#666',
+    fontWeight: '500',
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    width: '80%',
-    maxHeight: '60%',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 8,
+    paddingBottom: 32,
+    maxHeight: height * 0.6,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
+    fontSize: 20,
+    fontWeight: '700',
     color: '#333',
+  },
+  modalCloseButton: {
+    padding: 4,
   },
   optionItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 15,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#F8F9FA',
+  },
+  selectedOption: {
+    backgroundColor: '#F0F7FF',
   },
   optionText: {
     fontSize: 16,
     color: '#333',
+    fontWeight: '500',
   },
-  modalCancelButton: {
-    padding: 15,
-    marginTop: 10,
-  },
-  modalCancelText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+  selectedOptionText: {
+    color: '#4A90E2',
+    fontWeight: '600',
   },
 });

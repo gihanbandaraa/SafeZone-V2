@@ -1,7 +1,7 @@
 {
   "name": "safezone-backend-core",
   "version": "1.0.0",
-  "description": "SafeZone Backend - Core disaster relief functionality",
+  "description": "SafeZone Backend - Natural disaster response and relief coordination",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
