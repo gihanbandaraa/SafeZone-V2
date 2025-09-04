@@ -16,10 +16,9 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { API_BASE_URL } from '../../config/api';
 
 const { width, height } = Dimensions.get('window');
-
-const API_BASE_URL = 'http://192.168.1.168:5000/api';
 
 const roleOptions = [
   { 

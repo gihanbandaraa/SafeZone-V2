@@ -17,10 +17,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch } from 'react-redux';
 import { loginStart, loginSuccess, loginFailure } from '../../store/slices/authSlice';
+import { API_BASE_URL } from '../../config/api';
 
 const { width, height } = Dimensions.get('window');
-
-const API_BASE_URL = 'http://192.168.1.168:5000/api';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');

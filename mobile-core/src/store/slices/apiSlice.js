@@ -1,9 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
+import { API_BASE_URL } from '../../config/api';
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: Constants.expoConfig?.extra?.apiUrl || 'http://localhost:5000/api',
+  baseUrl: API_BASE_URL,
   prepareHeaders: async (headers) => {
     const token = await AsyncStorage.getItem('token');
     if (token) {
