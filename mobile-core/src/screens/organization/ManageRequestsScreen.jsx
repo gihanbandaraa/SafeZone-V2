@@ -24,6 +24,7 @@ import {
 } from '../../store/slices/requestsSlice';
 import { selectCurrentUser } from '../../store/slices/authSlice';
 import ApiService from '../../services/apiService';
+import RequestsMapView from '../../components/RequestsMapView';
 
 const { width, height } = Dimensions.get('window');
 
@@ -64,6 +65,7 @@ export default function ManageRequestsScreen() {
   const [showSortModal, setShowSortModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
 
   const sortOptions = [
     { label: 'Newest First', value: 'newest' },
@@ -129,6 +131,11 @@ export default function ManageRequestsScreen() {
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to assign request');
     }
+  };
+
+  const handleRequestFromMap = (request) => {
+    setSelectedRequest(request);
+    setShowDetailModal(true);
   };
 
   const renderRequestItem = ({ item }) => (
@@ -355,6 +362,18 @@ export default function ManageRequestsScreen() {
           >
             <MaterialCommunityIcons name="sort" size={20} color="#4A90E2" />
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.viewToggleButton, viewMode === 'map' && styles.viewToggleButtonActive]}
+            onPress={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons 
+              name={viewMode === 'list' ? 'map' : 'view-list'} 
+              size={20} 
+              color={viewMode === 'map' ? 'white' : '#4A90E2'} 
+            />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.resultsHeader}>
@@ -368,7 +387,7 @@ export default function ManageRequestsScreen() {
             <ActivityIndicator size="large" color="#4A90E2" />
             <Text style={styles.loadingText}>Loading requests...</Text>
           </View>
-        ) : (
+        ) : viewMode === 'list' ? (
           <FlatList
             data={filteredRequests}
             renderItem={renderRequestItem}
@@ -384,6 +403,13 @@ export default function ManageRequestsScreen() {
                 </Text>
               </View>
             )}
+          />
+        ) : (
+          <RequestsMapView
+            requests={filteredRequests}
+            onRequestSelect={handleRequestFromMap}
+            userRole="organization"
+            style={styles.mapContainer}
           />
         )}
 
@@ -508,6 +534,22 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  viewToggleButton: {
+    width: 48,
+    height: 48,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  viewToggleButtonActive: {
+    backgroundColor: '#4A90E2',
+  },
   resultsHeader: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -520,6 +562,17 @@ const styles = StyleSheet.create({
   listContainer: {
     padding: 16,
     paddingBottom: 32,
+  },
+  mapContainer: {
+    flex: 1,
+    margin: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   requestCard: {
     marginBottom: 16,

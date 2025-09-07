@@ -143,7 +143,6 @@ router.post('/', [
   authenticateToken,
   body('type').isIn(['flood', 'earthquake', 'landslide', 'tsunami', 'wildfire', 'cyclone', 'drought', 'other']).withMessage('Invalid disaster type'),
   body('description').trim().isLength({ min: 10 }).withMessage('Description must be at least 10 characters'),
-  body('location').notEmpty().withMessage('Location is required'),
   body('urgency').isIn(['low', 'medium', 'high', 'critical']).withMessage('Invalid urgency level')
 ], async (req, res) => {
   try {
@@ -163,13 +162,48 @@ router.post('/', [
       });
     }
 
-    const { type, description, location, urgency, contactInfo } = req.body;
+    const { 
+      type, 
+      description, 
+      location, 
+      coordinates, 
+      address, 
+      urgency, 
+      contactInfo 
+    } = req.body;
+
+    // Validate that we have either location or coordinates+address
+    if (!location && (!coordinates || !address)) {
+      return res.status(400).json({
+        message: 'Either location or coordinates with address is required'
+      });
+    }
+
+    // Validate coordinates format if provided
+    if (coordinates) {
+      if (!coordinates.latitude || !coordinates.longitude) {
+        return res.status(400).json({
+          message: 'Coordinates must include both latitude and longitude'
+        });
+      }
+      
+      const lat = parseFloat(coordinates.latitude);
+      const lng = parseFloat(coordinates.longitude);
+      
+      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        return res.status(400).json({
+          message: 'Invalid coordinate values'
+        });
+      }
+    }
 
     const request = await EmergencyRequest.create({
       userId: req.user.userId,
       type,
       description,
-      location,
+      location: location || address, // Use provided location or address as fallback
+      coordinates: coordinates || null,
+      address: address || location, // Use provided address or location as fallback
       urgency,
       contactInfo,
       status: 'pending'
@@ -243,7 +277,5 @@ router.patch('/:id/status', [
     });
   }
 });
-
-module.exports = router;
 
 module.exports = router;

@@ -15,7 +15,10 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyBbcFL7Rd2TalC_KDj0JKQXo15JX0y1L2o"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -25,11 +28,24 @@
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"
-      ]
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBbcFL7Rd2TalC_KDj0JKQXo15JX0y1L2o"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow SafeZone to use your location to help emergency responders find you quickly during disasters."
+        }
+      ]
+    ],
     "extra": {
       "apiUrl": "http://192.168.1.168:5000/api"
     },

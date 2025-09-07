@@ -27,6 +27,16 @@ const EmergencyRequest = sequelize.define('EmergencyRequest', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  coordinates: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    comment: 'Stores {latitude, longitude} for map visualization'
+  },
+  address: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Human readable address'
+  },
   urgency: {
     type: DataTypes.ENUM('low', 'medium', 'high', 'critical'),
     allowNull: false,

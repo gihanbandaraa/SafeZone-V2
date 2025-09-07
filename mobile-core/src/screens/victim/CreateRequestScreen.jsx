@@ -14,6 +14,7 @@ import { useDispatch } from 'react-redux';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { addMyRequest, setError } from '../../store/slices/requestsSlice';
 import ApiService from '../../services/apiService';
+import WorkingLocationPicker from '../../components/WorkingLocationPicker';
 
 const EMERGENCY_TYPES = [
   { label: 'Flood', value: 'flood', icon: 'waves' },
@@ -41,14 +42,17 @@ export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
     urgency: 'medium',
     description: '',
     location: '',
+    coordinates: null,
+    address: '',
     contactInfo: '',
   });
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [showUrgencyPicker, setShowUrgencyPicker] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   const handleSubmit = async () => {
-    if (!formData.type || !formData.description || !formData.location) {
-      Alert.alert('Error', 'Please fill in all required fields');
+    if (!formData.type || !formData.description || (!formData.location && !formData.coordinates)) {
+      Alert.alert('Error', 'Please fill in all required fields including location');
       return;
     }
 
@@ -72,6 +76,8 @@ export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
         urgency: 'medium',
         description: '',
         location: '',
+        coordinates: null,
+        address: '',
         contactInfo: '',
       });
     } catch (error) {
@@ -96,6 +102,16 @@ export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
 
   const getSelectedUrgency = () => {
     return URGENCY_LEVELS.find(urgency => urgency.value === formData.urgency);
+  };
+
+  const handleLocationSelect = (locationData) => {
+    setFormData(prev => ({
+      ...prev,
+      coordinates: locationData.coordinates,
+      address: locationData.address,
+      location: locationData.address, // For backward compatibility
+    }));
+    setShowLocationPicker(false);
   };
 
   return (
@@ -170,12 +186,50 @@ export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
           {/* Location */}
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Location *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.location}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, location: text }))}
-              placeholder="Enter your current location or address"
-            />
+            <TouchableOpacity
+              style={styles.locationPicker}
+              onPress={() => setShowLocationPicker(true)}
+            >
+              <View style={styles.locationContent}>
+                <MaterialCommunityIcons 
+                  name={formData.coordinates ? "map-marker-check" : "map-marker-plus"} 
+                  size={20} 
+                  color={formData.coordinates ? "#27ae60" : "#667eea"} 
+                />
+                <View style={styles.locationTextContainer}>
+                  {formData.address ? (
+                    <>
+                      <Text style={styles.selectedLocationText} numberOfLines={1}>
+                        {formData.address}
+                      </Text>
+                      <Text style={styles.coordinatesText}>
+                        📍 {formData.coordinates?.latitude.toFixed(4)}, {formData.coordinates?.longitude.toFixed(4)}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.placeholderText}>Tap to select location on map</Text>
+                  )}
+                </View>
+              </View>
+              <MaterialCommunityIcons name="chevron-right" size={20} color="#666" />
+            </TouchableOpacity>
+            
+            {/* Manual location input as fallback */}
+            <TouchableOpacity 
+              style={styles.manualLocationButton}
+              onPress={() => setFormData(prev => ({ ...prev, showManualLocation: !prev.showManualLocation }))}
+            >
+              <Text style={styles.manualLocationText}>Or enter location manually</Text>
+            </TouchableOpacity>
+            
+            {formData.showManualLocation && (
+              <TextInput
+                style={[styles.input, { marginTop: 8 }]}
+                value={formData.location}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, location: text }))}
+                placeholder="Enter your current location or address"
+              />
+            )}
           </View>
 
           {/* Contact Info */}
@@ -269,6 +323,20 @@ export default function CreateRequestScreen({ visible, onClose, onSuccess }) {
               </TouchableOpacity>
             </View>
           </View>
+        </Modal>
+
+        {/* Location Picker Modal */}
+        <Modal
+          visible={showLocationPicker}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setShowLocationPicker(false)}
+        >
+          <WorkingLocationPicker
+            onLocationSelect={handleLocationSelect}
+            onCancel={() => setShowLocationPicker(false)}
+            initialLocation={formData.coordinates}
+          />
         </Modal>
       </View>
     </Modal>
@@ -421,5 +489,45 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+  },
+  locationPicker: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    minHeight: 60,
+  },
+  locationContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  locationTextContainer: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  selectedLocationText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  coordinatesText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  manualLocationButton: {
+    marginTop: 8,
+    paddingVertical: 8,
+  },
+  manualLocationText: {
+    fontSize: 14,
+    color: '#667eea',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
   },
 });
