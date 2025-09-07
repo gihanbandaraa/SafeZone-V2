@@ -168,9 +168,10 @@ export default function LoginScreen({ navigation }) {
               <View style={styles.testAccounts}>
                 <Text style={styles.testTitle}>Quick Test Accounts</Text>
                 <View style={styles.testAccountsList}>
-                  <Text style={styles.testText}>👤 Victim: victim@safezone.com / victim123</Text>
-                  <Text style={styles.testText}>🤝 Volunteer: volunteer@safezone.com / volunteer123</Text>
-                  <Text style={styles.testText}>🏢 Organization: org@safezone.com / org123</Text>
+                  <Text style={styles.testText}>👤 Victim: victim1@safezone.com / victim123</Text>
+                  <Text style={styles.testText}>🤝 Volunteer: volunteer1@safezone.com / volunteer123</Text>
+                  <Text style={styles.testText}>🏢 Organization: redcross@safezone.com / org123</Text>
+                  <Text style={styles.testText}>⚙️ Admin: admin@safezone.com / admin123</Text>
                 </View>
               </View>
             </View>

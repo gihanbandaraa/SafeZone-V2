@@ -112,13 +112,13 @@ const LoginPage = () => {
           
           <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
             <Typography variant="caption" display="block" gutterBottom>
-              Test Account:
+              Test Accounts:
             </Typography>
             <Typography variant="caption" display="block">
-              Email: admin@safezone.com
+              Admin: admin@safezone.com / admin123
             </Typography>
             <Typography variant="caption" display="block">
-              Password: admin123
+              Red Cross: redcross@safezone.com / org123
             </Typography>
           </Box>
         </Paper>
