@@ -11,6 +11,7 @@ import {
 import MapView, { Marker, Callout } from 'react-native-maps';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import DirectionsModal from './DirectionsModal';
 
 const { width, height } = Dimensions.get('window');
 
@@ -55,6 +56,8 @@ const STATUS_COLORS = {
 export default function RequestsMapView({ requests, onRequestSelect, userRole, style }) {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [mapRef, setMapRef] = useState(null);
+  const [directionsVisible, setDirectionsVisible] = useState(false);
+  const [navigationRequest, setNavigationRequest] = useState(null);
 
   // Default region (can be customized)
   const defaultRegion = {
@@ -100,6 +103,11 @@ export default function RequestsMapView({ requests, onRequestSelect, userRole, s
     if (onRequestSelect) {
       onRequestSelect(request);
     }
+  };
+
+  const handleNavigateToLocation = (request) => {
+    setNavigationRequest(request);
+    setDirectionsVisible(true);
   };
 
   const fitToMarkers = () => {
@@ -189,10 +197,22 @@ export default function RequestsMapView({ requests, onRequestSelect, userRole, s
               </View>
             </View>
             
-            {userRole === 'volunteer' && request.status === 'pending' && (
-              <TouchableOpacity style={styles.acceptButton}>
-                <Text style={styles.acceptButtonText}>View Details</Text>
-              </TouchableOpacity>
+            {(userRole === 'volunteer' || userRole === 'organization') && (
+              <View style={styles.calloutActions}>
+                <TouchableOpacity 
+                  style={styles.navigateButton}
+                  onPress={() => handleNavigateToLocation(request)}
+                >
+                  <MaterialCommunityIcons name="navigation" size={14} color="white" />
+                  <Text style={styles.navigateButtonText}>Navigate</Text>
+                </TouchableOpacity>
+                
+                {userRole === 'volunteer' && request.status === 'pending' && (
+                  <TouchableOpacity style={styles.acceptButton}>
+                    <Text style={styles.acceptButtonText}>View Details</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             )}
           </View>
         </Callout>
@@ -251,6 +271,17 @@ export default function RequestsMapView({ requests, onRequestSelect, userRole, s
             </Text>
           </LinearGradient>
         </View>
+      )}
+
+      {/* Directions Modal */}
+      {navigationRequest && (
+        <DirectionsModal
+          visible={directionsVisible}
+          onClose={() => setDirectionsVisible(false)}
+          destinationCoords={navigationRequest.coordinates}
+          destinationAddress={navigationRequest.address}
+          requestType={navigationRequest.type}
+        />
       )}
     </View>
   );
@@ -339,16 +370,37 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     flex: 1,
   },
-  acceptButton: {
+  calloutActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  navigateButton: {
     backgroundColor: '#667eea',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  navigateButtonText: {
+    color: 'white',
+    fontSize: 11,
+    fontWeight: 'bold',
+    marginLeft: 4,
+  },
+  acceptButton: {
+    backgroundColor: '#27ae60',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     borderRadius: 6,
     alignItems: 'center',
+    flex: 1,
   },
   acceptButtonText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
   },
   controlsContainer: {

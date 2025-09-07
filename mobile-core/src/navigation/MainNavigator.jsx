@@ -4,8 +4,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../store/slices/authSlice';
 
+// Navigators
+import VictimStackNavigator from './VictimStackNavigator';
+
 // Screens
-import VictimHomeScreen from '../screens/victim/VictimHomeScreen';
 import VolunteerHomeScreen from '../screens/volunteer/VolunteerHomeScreen';
 import OrganizationHomeScreen from '../screens/organization/OrganizationHomeScreen';
 import ProfileScreen from '../screens/shared/ProfileScreen';
@@ -19,7 +21,7 @@ export default function MainNavigator() {
     switch (user?.role) {
       case 'victim':
         return {
-          component: VictimHomeScreen,
+          component: VictimStackNavigator,
           icon: 'home-alert',
           label: 'Emergency'
         };
@@ -37,7 +39,7 @@ export default function MainNavigator() {
         };
       default:
         return {
-          component: VictimHomeScreen,
+          component: VictimStackNavigator,
           icon: 'home',
           label: 'Home'
         };

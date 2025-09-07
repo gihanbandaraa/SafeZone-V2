@@ -30,6 +30,50 @@ class ApiService {
     return data;
   }
 
+  // Generic HTTP methods
+  async get(endpoint) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'GET',
+      headers: await this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async post(endpoint, data = {}) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: await this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return this.handleResponse(response);
+  }
+
+  async patch(endpoint, data = {}) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PATCH',
+      headers: await this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return this.handleResponse(response);
+  }
+
+  async put(endpoint, data = {}) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PUT',
+      headers: await this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return this.handleResponse(response);
+  }
+
+  async delete(endpoint) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'DELETE',
+      headers: await this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
   // Auth endpoints
   async login(email, password) {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -68,6 +112,13 @@ class ApiService {
 
   async getAvailableRequests() {
     const response = await fetch(`${API_BASE_URL}/requests/available`, {
+      headers: await this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async getAssignedRequests() {
+    const response = await fetch(`${API_BASE_URL}/requests/assigned`, {
       headers: await this.getHeaders(),
     });
     return this.handleResponse(response);

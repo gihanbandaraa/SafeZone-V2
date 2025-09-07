@@ -25,6 +25,7 @@ import {
 } from '../../store/slices/requestsSlice';
 import { selectCurrentUser } from '../../store/slices/authSlice';
 import ApiService from '../../services/apiService';
+import DirectionsModal from '../../components/DirectionsModal';
 
 const URGENCY_COLORS = {
   low: '#26de81',
@@ -51,9 +52,16 @@ export default function VolunteerHomeScreen() {
   const loading = useSelector(selectRequestsLoading);
   const error = useSelector(selectRequestsError);
   const [refreshing, setRefreshing] = useState(false);
+  
+  // New state for assigned requests and tabs
+  const [activeTab, setActiveTab] = useState('available');
+  const [assignedRequests, setAssignedRequests] = useState([]);
+  const [directionsVisible, setDirectionsVisible] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
   useEffect(() => {
     loadAvailableRequests();
+    loadAssignedRequests();
   }, []);
 
   useEffect(() => {
@@ -76,10 +84,67 @@ export default function VolunteerHomeScreen() {
     }
   };
 
+  const loadAssignedRequests = async () => {
+    try {
+      const data = await ApiService.getAssignedRequests();
+      setAssignedRequests(data);
+    } catch (error) {
+      console.error('Load assigned requests error:', error);
+      Alert.alert('Error', 'Failed to load assigned requests');
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadAvailableRequests();
+    if (activeTab === 'available') {
+      await loadAvailableRequests();
+    } else {
+      await loadAssignedRequests();
+    }
     setRefreshing(false);
+  };
+
+  const handleNavigateToLocation = (request) => {
+    setSelectedRequest(request);
+    setDirectionsVisible(true);
+  };
+
+  const handleUpdateStatus = async (requestId, newStatus) => {
+    try {
+      await ApiService.updateRequestStatus(requestId, newStatus);
+      Alert.alert('Success', `Request status updated to ${newStatus}`);
+      loadAssignedRequests(); // Refresh assigned requests
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to update status');
+    }
+  };
+
+  const handleStartWork = (requestId) => {
+    Alert.alert(
+      'Start Work',
+      'Are you ready to start working on this emergency?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Start',
+          onPress: () => handleUpdateStatus(requestId, 'in_progress'),
+        },
+      ]
+    );
+  };
+
+  const handleCompleteWork = (requestId) => {
+    Alert.alert(
+      'Complete Work',
+      'Have you completed assistance for this emergency?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Complete',
+          onPress: () => handleUpdateStatus(requestId, 'completed'),
+        },
+      ]
+    );
   };
 
   const handleAcceptRequest = async (requestId) => {
@@ -95,6 +160,7 @@ export default function VolunteerHomeScreen() {
               await ApiService.acceptRequest(requestId);
               Alert.alert('Success', 'Request accepted successfully!');
               loadAvailableRequests(); // Refresh the list
+              loadAssignedRequests(); // Also refresh assigned list
             } catch (error) {
               Alert.alert('Error', error.message || 'Failed to accept request');
             }
@@ -104,7 +170,7 @@ export default function VolunteerHomeScreen() {
     );
   };
 
-  const renderRequestItem = ({ item }) => (
+  const renderAvailableRequestItem = ({ item }) => (
     <TouchableOpacity style={styles.requestCard} activeOpacity={0.95}>
       <LinearGradient
         colors={['#FFFFFF', '#F8FAFF']}
@@ -137,7 +203,7 @@ export default function VolunteerHomeScreen() {
         <View style={styles.requestDetails}>
           <View style={styles.detailItem}>
             <MaterialCommunityIcons name="map-marker" size={16} color="#747d8c" />
-            <Text style={styles.detailText}>{item.location}</Text>
+            <Text style={styles.detailText}>{item.address || item.location}</Text>
           </View>
           <View style={styles.detailItem}>
             <MaterialCommunityIcons name="clock-outline" size={16} color="#747d8c" />
@@ -147,11 +213,11 @@ export default function VolunteerHomeScreen() {
           </View>
         </View>
 
-        {item.User && (
+        {item.user && (
           <View style={styles.userInfo}>
             <MaterialCommunityIcons name="account" size={16} color="#667eea" />
             <Text style={styles.userName}>
-              Requested by: {item.User.firstName} {item.User.lastName}
+              Requested by: {item.user.firstName} {item.user.lastName}
             </Text>
           </View>
         )}
@@ -159,45 +225,104 @@ export default function VolunteerHomeScreen() {
         <TouchableOpacity
           style={styles.acceptButton}
           onPress={() => handleAcceptRequest(item.id)}
-          activeOpacity={0.8}
         >
           <LinearGradient
-            colors={['#26de81', '#20bf6b']}
-            style={styles.acceptButtonGradient}
+            colors={['#667eea', '#764ba2']}
+            style={styles.buttonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <MaterialCommunityIcons name="hand-heart" size={20} color="white" />
-            <Text style={styles.acceptButtonText}>Accept Request</Text>
+            <MaterialCommunityIcons name="check" size={16} color="white" />
+            <Text style={styles.buttonText}>Accept Request</Text>
           </LinearGradient>
         </TouchableOpacity>
       </LinearGradient>
     </TouchableOpacity>
   );
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <MaterialCommunityIcons name="heart-plus" size={80} color="#ddd" />
-      <Text style={styles.emptyTitle}>No Available Requests</Text>
-      <Text style={styles.emptySubtitle}>
-        There are currently no emergency requests that need volunteers.
-      </Text>
-      <TouchableOpacity
-        style={styles.refreshButton}
-        onPress={loadAvailableRequests}
-        activeOpacity={0.8}
+  const renderAssignedRequestItem = ({ item }) => (
+    <TouchableOpacity style={styles.requestCard} activeOpacity={0.95}>
+      <LinearGradient
+        colors={['#FFFFFF', '#F8FAFF']}
+        style={styles.cardGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        <LinearGradient
-          colors={['#667eea', '#764ba2']}
-          style={styles.refreshButtonGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <MaterialCommunityIcons name="refresh" size={20} color="white" />
-          <Text style={styles.refreshButtonText}>Refresh</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
+        <View style={styles.requestHeader}>
+          <View style={styles.typeContainer}>
+            <View style={styles.typeIconContainer}>
+              <MaterialCommunityIcons
+                name={TYPE_ICONS[item.type] || 'alert'}
+                size={20}
+                color="#667eea"
+              />
+            </View>
+            <Text style={styles.requestType}>
+              {item.type?.replace('_', ' ')}
+            </Text>
+          </View>
+          <View style={[styles.urgencyBadge, { backgroundColor: URGENCY_COLORS[item.urgency] }]}>
+            <Text style={styles.urgencyText}>{item.urgency?.toUpperCase()}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.requestDescription} numberOfLines={3}>
+          {item.description}
+        </Text>
+
+        <View style={styles.requestDetails}>
+          <View style={styles.detailItem}>
+            <MaterialCommunityIcons name="map-marker" size={16} color="#747d8c" />
+            <Text style={styles.detailText}>{item.address || item.location}</Text>
+          </View>
+          <View style={styles.detailItem}>
+            <MaterialCommunityIcons name="clock-outline" size={16} color="#747d8c" />
+            <Text style={styles.detailText}>
+              {new Date(item.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
+
+        {item.user && (
+          <View style={styles.userInfo}>
+            <MaterialCommunityIcons name="account" size={16} color="#667eea" />
+            <Text style={styles.userName}>
+              Victim: {item.user.firstName} {item.user.lastName}
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.assignedActions}>
+          <TouchableOpacity
+            style={styles.navigateButton}
+            onPress={() => handleNavigateToLocation(item)}
+          >
+            <MaterialCommunityIcons name="navigation" size={16} color="#667eea" />
+            <Text style={styles.navigateButtonText}>Navigate</Text>
+          </TouchableOpacity>
+
+          {item.status === 'assigned' && (
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={() => handleStartWork(item.id)}
+            >
+              <MaterialCommunityIcons name="play" size={16} color="white" />
+              <Text style={styles.startButtonText}>Start Work</Text>
+            </TouchableOpacity>
+          )}
+
+          {item.status === 'in_progress' && (
+            <TouchableOpacity
+              style={styles.completeButton}
+              onPress={() => handleCompleteWork(item.id)}
+            >
+              <MaterialCommunityIcons name="check-circle" size={16} color="white" />
+              <Text style={styles.completeButtonText}>Complete</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
   );
 
   return (
@@ -238,32 +363,110 @@ export default function VolunteerHomeScreen() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>0</Text>
-            <Text style={styles.statLabel}>Accepted</Text>
+            <Text style={styles.statNumber}>{assignedRequests.length}</Text>
+            <Text style={styles.statLabel}>Assigned</Text>
           </View>
         </View>
       </LinearGradient>
 
-      {loading && availableRequests.length === 0 ? (
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'available' && styles.activeTab]}
+          onPress={() => setActiveTab('available')}
+        >
+          <MaterialCommunityIcons 
+            name="heart-plus" 
+            size={20} 
+            color={activeTab === 'available' ? '#667eea' : '#747d8c'} 
+          />
+          <Text style={[styles.tabText, activeTab === 'available' && styles.activeTabText]}>
+            Available ({availableRequests.length})
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'assigned' && styles.activeTab]}
+          onPress={() => setActiveTab('assigned')}
+        >
+          <MaterialCommunityIcons 
+            name="account-check" 
+            size={20} 
+            color={activeTab === 'assigned' ? '#667eea' : '#747d8c'} 
+          />
+          <Text style={[styles.tabText, activeTab === 'assigned' && styles.activeTabText]}>
+            My Tasks ({assignedRequests.length})
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {loading && (activeTab === 'available' ? availableRequests.length === 0 : assignedRequests.length === 0) ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#667eea" />
-          <Text style={styles.loadingText}>Loading available requests...</Text>
+          <Text style={styles.loadingText}>
+            Loading {activeTab === 'available' ? 'available' : 'assigned'} requests...
+          </Text>
         </View>
       ) : (
         <FlatList
-          data={availableRequests}
-          renderItem={renderRequestItem}
+          data={activeTab === 'available' ? availableRequests : assignedRequests}
+          renderItem={activeTab === 'available' ? renderAvailableRequestItem : renderAssignedRequestItem}
           keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
           contentContainerStyle={
-            availableRequests.length === 0 ? styles.emptyContainer : styles.listContainer
+            (activeTab === 'available' ? availableRequests.length === 0 : assignedRequests.length === 0) 
+              ? styles.emptyContainer 
+              : styles.listContainer
           }
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-          ListEmptyComponent={renderEmptyState}
+          ListEmptyComponent={() => (
+            <View style={styles.emptyState}>
+              <MaterialCommunityIcons 
+                name={activeTab === 'available' ? "heart-plus" : "clipboard-check"} 
+                size={80} 
+                color="#ddd" 
+              />
+              <Text style={styles.emptyTitle}>
+                No {activeTab === 'available' ? 'Available' : 'Assigned'} Requests
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {activeTab === 'available' 
+                  ? 'There are currently no emergency requests that need volunteers.'
+                  : 'You have no assigned emergency requests at the moment.'
+                }
+              </Text>
+              <TouchableOpacity
+                style={styles.refreshButton}
+                onPress={activeTab === 'available' ? loadAvailableRequests : loadAssignedRequests}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={['#667eea', '#764ba2']}
+                  style={styles.refreshButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <MaterialCommunityIcons name="refresh" size={20} color="white" />
+                  <Text style={styles.refreshButtonText}>Refresh</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          )}
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      {/* DirectionsModal */}
+      <DirectionsModal
+        visible={directionsVisible}
+        onClose={() => setDirectionsVisible(false)}
+        destinationCoords={{
+          latitude: selectedRequest?.coordinates?.latitude || 0,
+          longitude: selectedRequest?.coordinates?.longitude || 0,
+        }}
+        destinationAddress={selectedRequest?.address || selectedRequest?.location || 'Emergency Location'}
+      />
     </SafeAreaView>
   );
 }
@@ -335,6 +538,46 @@ const styles = StyleSheet.create({
     width: 1,
     backgroundColor: '#e0e6ed',
     marginHorizontal: 15,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f8faff',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 25,
+    marginHorizontal: 5,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  activeTab: {
+    backgroundColor: '#667eea',
+    shadowColor: '#667eea',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#747d8c',
+    marginLeft: 8,
+  },
+  activeTabText: {
+    color: '#ffffff',
   },
   listContainer: {
     padding: 20,
@@ -438,6 +681,18 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
+  buttonGradient: {
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
   acceptButtonGradient: {
     padding: 15,
     flexDirection: 'row',
@@ -449,6 +704,64 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+  assignedActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  navigateButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    backgroundColor: '#f8faff',
+    borderWidth: 2,
+    borderColor: '#667eea',
+    marginRight: 8,
+  },
+  navigateButtonText: {
+    color: '#667eea',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  startButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    backgroundColor: '#26de81',
+    marginLeft: 8,
+  },
+  startButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  completeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    backgroundColor: '#667eea',
+    marginLeft: 8,
+  },
+  completeButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
   },
   emptyState: {
     flex: 1,

@@ -59,6 +59,42 @@ router.get('/available', authenticateToken, async (req, res) => {
   }
 });
 
+// Get assigned requests (for volunteers)
+router.get('/assigned', authenticateToken, async (req, res) => {
+  try {
+    const { userId, role } = req.user;
+    
+    if (role !== 'volunteer') {
+      return res.status(403).json({
+        message: 'Only volunteers can access assigned requests'
+      });
+    }
+
+    const requests = await EmergencyRequest.findAll({
+      where: { 
+        assignedVolunteerId: userId,
+        status: ['assigned', 'in_progress'] // Show both assigned and in progress
+      },
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['firstName', 'lastName', 'phone']
+        }
+      ],
+      order: [['assignedAt', 'DESC']]
+    });
+
+    res.json(requests);
+  } catch (error) {
+    console.error('Get assigned requests error:', error);
+    res.status(500).json({
+      message: 'Failed to fetch assigned requests',
+      error: error.message
+    });
+  }
+});
+
 // Get all requests (for organizations)
 router.get('/all', authenticateToken, async (req, res) => {
   try {
@@ -221,7 +257,8 @@ router.post('/', [
 // Update request status
 router.patch('/:id/status', [
   authenticateToken,
-  body('status').isIn(['pending', 'assigned', 'in_progress', 'completed', 'cancelled'])
+  body('status').isIn(['pending', 'assigned', 'in_progress', 'completed', 'cancelled']),
+  body('completedBy').optional().isIn(['victim', 'volunteer', 'organization'])
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -233,7 +270,7 @@ router.patch('/:id/status', [
     }
 
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, completedBy } = req.body;
     const { userId, role } = req.user;
 
     const request = await EmergencyRequest.findByPk(id);
@@ -243,28 +280,23 @@ router.patch('/:id/status', [
       });
     }
 
-    // Check permissions
-    if (role === 'victim' && request.userId !== userId) {
+    // Check if status change is allowed
+    const statusCheck = request.canChangeStatus(status, role, userId);
+    if (!statusCheck.valid) {
       return res.status(403).json({
-        message: 'Not authorized'
+        message: statusCheck.reason
       });
     }
 
-    if (role === 'volunteer' && request.assignedVolunteerId !== userId) {
-      return res.status(403).json({
-        message: 'Not authorized'
-      });
-    }
-
-    // Organizations can update any request
-    if (role !== 'organization' && role !== 'admin') {
-      // Additional permission checks for other roles
-    }
-
-    await request.update({
+    const updateData = {
       status,
-      ...(status === 'completed' && { completedAt: new Date() })
-    });
+      ...(status === 'completed' && { 
+        completedAt: new Date(),
+        completedBy: completedBy || role
+      })
+    };
+
+    await request.update(updateData);
 
     res.json({
       message: 'Request status updated',
@@ -274,6 +306,167 @@ router.patch('/:id/status', [
     console.error('Update request status error:', error);
     res.status(500).json({
       message: 'Failed to update request status'
+    });
+  }
+});
+
+// Send message between victim and volunteer
+router.post('/send-message', [
+  authenticateToken,
+  body('requestId').isUUID().withMessage('Valid request ID required'),
+  body('message').trim().isLength({ min: 1 }).withMessage('Message cannot be empty'),
+  body('messageType').isIn(['victim_to_volunteer', 'volunteer_to_victim']).withMessage('Invalid message type')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { requestId, message, messageType, volunteerId } = req.body;
+    const { userId, role } = req.user;
+
+    const request = await EmergencyRequest.findByPk(requestId, {
+      include: [
+        { model: User, as: 'user', attributes: ['id', 'firstName', 'lastName', 'phone'] },
+        { model: User, as: 'assignedVolunteer', attributes: ['id', 'firstName', 'lastName', 'phone'] }
+      ]
+    });
+
+    if (!request) {
+      return res.status(404).json({
+        message: 'Request not found'
+      });
+    }
+
+    // Verify user permissions
+    if (messageType === 'victim_to_volunteer') {
+      if (role !== 'victim' || request.userId !== userId) {
+        return res.status(403).json({
+          message: 'Only the victim of this request can send messages to volunteers'
+        });
+      }
+      if (!request.assignedVolunteerId) {
+        return res.status(400).json({
+          message: 'No volunteer is assigned to this request yet'
+        });
+      }
+    } else if (messageType === 'volunteer_to_victim') {
+      if (role !== 'volunteer' || request.assignedVolunteerId !== userId) {
+        return res.status(403).json({
+          message: 'Only the assigned volunteer can send messages to the victim'
+        });
+      }
+    }
+
+    // For this example, we'll just return success
+    // In a real app, you would save the message to a messages table
+    // and send push notifications
+    res.json({
+      success: true,
+      message: 'Message sent successfully',
+      data: {
+        requestId,
+        messageType,
+        sentAt: new Date(),
+        recipient: messageType === 'victim_to_volunteer' ? 
+          request.assignedVolunteer : request.user
+      }
+    });
+  } catch (error) {
+    console.error('Send message error:', error);
+    res.status(500).json({
+      message: 'Failed to send message'
+    });
+  }
+});
+
+// Delete request with enhanced permission checks
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, role } = req.user;
+
+    const request = await EmergencyRequest.findByPk(id);
+    if (!request) {
+      return res.status(404).json({
+        message: 'Request not found'
+      });
+    }
+
+    // Check if deletion is allowed
+    if (!request.canDelete(role, userId)) {
+      return res.status(403).json({
+        message: 'Cannot delete this request. Requests that are assigned or in progress can only be completed or cancelled.',
+        canDelete: false,
+        currentStatus: request.status
+      });
+    }
+
+    await request.destroy();
+
+    res.json({
+      message: 'Request deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete request error:', error);
+    res.status(500).json({
+      message: 'Failed to delete request'
+    });
+  }
+});
+
+// Get single request by ID (must be last to avoid conflicts with other routes)
+router.get('/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, role } = req.user;
+
+    const request = await EmergencyRequest.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'firstName', 'lastName', 'phone']
+        },
+        {
+          model: User,
+          as: 'assignedVolunteer',
+          attributes: ['id', 'firstName', 'lastName', 'phone']
+        }
+      ]
+    });
+
+    if (!request) {
+      return res.status(404).json({
+        message: 'Request not found'
+      });
+    }
+
+    // Check permissions - users can only view requests they're involved with
+    const canView = 
+      role === 'organization' || 
+      role === 'admin' ||
+      request.userId === userId ||
+      request.assignedVolunteerId === userId;
+
+    if (!canView) {
+      return res.status(403).json({
+        message: 'Not authorized to view this request'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: request
+    });
+  } catch (error) {
+    console.error('Get request by ID error:', error);
+    res.status(500).json({
+      message: 'Failed to fetch request details'
     });
   }
 });

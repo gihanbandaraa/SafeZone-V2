@@ -107,8 +107,7 @@ export default function VictimHomeScreen({ navigation }) {
     <TouchableOpacity
       style={styles.requestCard}
       onPress={() => {
-        // Navigate to request details
-        console.log('View request details:', item.id);
+        navigation.navigate('RequestDetails', { requestId: item.id });
       }}
       activeOpacity={0.95}
     >
